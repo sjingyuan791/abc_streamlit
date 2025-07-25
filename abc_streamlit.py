@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import io
 
 st.set_page_config(page_title="ABC分析付きCSV出力", layout="wide")
 st.title("🔖 商品別ABC分析＋CSVダウンロードアプリ")
@@ -10,7 +11,12 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file:
-    df = pd.read_csv(uploaded_file, encoding="utf-8-sig")
+    # ▼ 文字化けしないための処置
+    try:
+        df = pd.read_csv(uploaded_file, encoding="utf-8-sig")
+    except UnicodeDecodeError:
+        df = pd.read_csv(uploaded_file, encoding="cp932")  # 念のためWindows系も対応
+
     st.write("アップロードデータ（サンプル）")
     st.dataframe(df.head(10))
 
@@ -29,14 +35,28 @@ if uploaded_file:
     st.markdown("#### 商品ランク分布")
     st.dataframe(abc_df.groupby("ABCランク")["product"].count().rename("商品数"))
 
-    # ▼ ここを「cp932」に変更
-    csv_str = df.to_csv(index=False, encoding="cp932")  
+    # ========================
+    # 全体のCSVダウンロード（cp932で文字化け回避！）
+    output = io.BytesIO()
+    df.to_csv(output, index=False, encoding="cp932")
     st.download_button(
         label="📥 ABC分析済みCSVをダウンロード",
-        data=csv_str,
+        data=output.getvalue(),
         file_name="abc_analyzed.csv",
         mime="text/csv"
     )
+
+    # Aランク商品のみ抽出
+    df_A = df[df["ABCランク"] == "A"].copy()
+    if not df_A.empty:
+        output_A = io.BytesIO()
+        df_A.to_csv(output_A, index=False, encoding="cp932")
+        st.download_button(
+            label="📥 Aランク商品のみCSVをダウンロード",
+            data=output_A.getvalue(),
+            file_name="abc_rank_A_only.csv",
+            mime="text/csv"
+        )
 
     st.markdown("（A：売上上位80%、B：上位80-95%、C：残り）")
 else:
