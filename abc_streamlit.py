@@ -4,7 +4,10 @@ import pandas as pd
 st.set_page_config(page_title="ABC分析付きCSV出力", layout="wide")
 st.title("🔖 商品別ABC分析＋CSVダウンロードアプリ")
 
-uploaded_file = st.file_uploader("商品別売上CSVファイルをアップロード（product, sales列必須）", type=["csv"])
+uploaded_file = st.file_uploader(
+    "商品別売上CSVファイルをアップロード（product, sales列必須）", 
+    type=["csv"]
+)
 
 if uploaded_file:
     # データ読込
@@ -35,8 +38,13 @@ if uploaded_file:
     st.dataframe(abc_df.groupby("ABCランク")["product"].count().rename("商品数"))
 
     # --- ダウンロードボタン ---
-    csv_bytes = df.to_csv(index=False, encoding="utf-8-sig").encode()
-    st.download_button("📥 ABC分析済みCSVをダウンロード", csv_bytes, file_name="abc_analyzed.csv", mime="text/csv")
+    csv_str = df.to_csv(index=False, encoding="utf-8-sig")  # ←str型のままでOK
+    st.download_button(
+        label="📥 ABC分析済みCSVをダウンロード",
+        data=csv_str,
+        file_name="abc_analyzed.csv",
+        mime="text/csv"
+    )
 
     st.markdown("（A：売上上位80%、B：上位80-95%、C：残り）")
 else:
