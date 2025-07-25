@@ -5,7 +5,7 @@ st.set_page_config(page_title="ABC分析付きCSV出力", layout="wide")
 st.title("🔖 商品別ABC分析＋CSVダウンロードアプリ")
 
 uploaded_file = st.file_uploader(
-    "商品別売上CSVファイルをアップロード（product, sales列必須）", 
+    "商品別売上CSVファイルをアップロード（product, sales列必須）",
     type=["csv"]
 )
 
@@ -37,14 +37,27 @@ if uploaded_file:
     st.markdown("#### 商品ランク分布")
     st.dataframe(abc_df.groupby("ABCランク")["product"].count().rename("商品数"))
 
-    # --- ダウンロードボタン ---
-    csv_str = df.to_csv(index=False, encoding="utf-8-sig")  # ←str型のままでOK
+    # --- ABC分析済みCSVのダウンロードボタン ---
+    csv_str = df.to_csv(index=False, encoding="utf-8-sig")
     st.download_button(
         label="📥 ABC分析済みCSVをダウンロード",
         data=csv_str,
         file_name="abc_analyzed.csv",
         mime="text/csv"
     )
+
+    # --- Aランクのみ抽出＆ダウンロードボタン ---
+    df_A = df[df["ABCランク"] == "A"]
+    if not df_A.empty:
+        a_csv_str = df_A.to_csv(index=False, encoding="utf-8-sig")
+        st.download_button(
+            label="⭐ Aランク商品のみCSVをダウンロード",
+            data=a_csv_str,
+            file_name="abc_rank_A_only.csv",
+            mime="text/csv"
+        )
+    else:
+        st.info("Aランク商品がありません。")
 
     st.markdown("（A：売上上位80%、B：上位80-95%、C：残り）")
 else:
