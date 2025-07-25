@@ -1,0 +1,11 @@
+setuptools
+wheel
+numpy
+pandas
+scipy
+streamlit
+plotly
+prophet
+openai         # ChatGPT連携
+tabulate
+scikit-learn   # 機械学習・分析
